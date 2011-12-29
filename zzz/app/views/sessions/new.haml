@@ -1,0 +1,7 @@
+.flash=[:error, :warning, :notice].map { |type| flash_tag(type, :class => "message #{type}") }.join
+
+-form_tag(url(:sessions, :create)) do
+	=text_field_tag :email, :value => params[:username]
+	=password_field_tag :password, :value => params[:password]
+	=check_box_tag :bypass
+	=submit_tag('Sign In')

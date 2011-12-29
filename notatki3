@@ -1,0 +1,210 @@
+Rails 3.1.3
+
+Chapter 6
+
+1) kuba@traktor:~/rails_projekty/sample_app$ rails g model User name:string email:string
+2) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rake db:migrate
+3) geany Gemfile
+
+group :development do
+  gem 'rspec-rails', '2.6.1'
+  gem 'annotate', '2.4.0'
+end
+
+4) kuba@traktor:~/rails_projekty/sample_app$ bundle install
+5) kuba@traktor:~/rails_projekty/sample_app$ bundle exec annotate --position before
+6) #app/models/user.rb (u mnie nie dziala annotate :P)
+
+# == Schema Information
+#
+# Table name: users
+#
+#  id         :integer         not null, primary key
+#  name       :string(255)
+#  email      :string(255)
+#  created_at :datetime
+#  updated_at :datetime
+#
+
+class User < ActiveRecord::Base
+end
+
+7) #app/models/user.rb
+
+class User < ActiveRecord::Base
+  attr_accessible :name, :email
+end
+
+8) kuba@traktor:~/rails_projekty/sample_app$ rails console --sandbox
+Loading development environment in sandbox (Rails 3.1.3)
+Any modifications you make will be rolled back on exit
+1.9.2-p290 :001 > User.new
+ => #<User id: nil, name: nil, email: nil, created_at: nil, updated_at: nil> 
+1.9.2-p290 :002 > user = User.new(:name => "kuba", :email => "slunzok@gmail.com")
+ => #<User id: nil, name: "kuba", email: "slunzok@gmail.com", created_at: nil, updated_at: nil> 
+1.9.2-p290 :003 > user.save
+   (0.2ms)  SAVEPOINT active_record_1
+  SQL (83.2ms)  INSERT INTO "users" ("created_at", "email", "name", "updated_at") VALUES (?, ?, ?, ?)  [["created_at", Wed, 28 Dec 2011 18:07:35 UTC +00:00], ["email", "slunzok@gmail.com"], ["name", "kuba"], ["updated_at", Wed, 28 Dec 2011 18:07:35 UTC +00:00]]
+   (32.5ms)  RELEASE SAVEPOINT active_record_1
+ => true 
+1.9.2-p290 :004 > user
+ => #<User id: 1, name: "kuba", email: "slunzok@gmail.com", created_at: "2011-12-28 18:07:35", updated_at: "2011-12-28 18:07:35"> 
+1.9.2-p290 :005 > user.name
+ => "kuba" 
+1.9.2-p290 :006 > user.email
+ => "slunzok@gmail.com" 
+1.9.2-p290 :007 > user.updated_at
+ => Wed, 28 Dec 2011 18:07:35 UTC +00:00 
+1.9.2-p290 :008 > User.create(:name => "foobar", :email => "foobar@mailinator.com")
+   (0.2ms)  SAVEPOINT active_record_1
+  SQL (49.7ms)  INSERT INTO "users" ("created_at", "email", "name", "updated_at") VALUES (?, ?, ?, ?)  [["created_at", Wed, 28 Dec 2011 18:09:08 UTC +00:00], ["email", "foobar@mailinator.com"], ["name", "foobar"], ["updated_at", Wed, 28 Dec 2011 18:09:08 UTC +00:00]]
+   (0.2ms)  RELEASE SAVEPOINT active_record_1
+ => #<User id: 2, name: "foobar", email: "foobar@mailinator.com", created_at: "2011-12-28 18:09:08", updated_at: "2011-12-28 18:09:08"> 
+1.9.2-p290 :009 > foo = User.create(:name => "foo", :email => "bar@example.com")
+   (0.2ms)  SAVEPOINT active_record_1
+  SQL (0.8ms)  INSERT INTO "users" ("created_at", "email", "name", "updated_at") VALUES (?, ?, ?, ?)  [["created_at", Wed, 28 Dec 2011 18:10:53 UTC +00:00], ["email", "bar@example.com"], ["name", "foo"], ["updated_at", Wed, 28 Dec 2011 18:10:53 UTC +00:00]]
+   (0.2ms)  RELEASE SAVEPOINT active_record_1
+ => #<User id: 3, name: "foo", email: "bar@example.com", created_at: "2011-12-28 18:10:53", updated_at: "2011-12-28 18:10:53"> 
+1.9.2-p290 :010 > foo.destroy
+   (0.1ms)  SAVEPOINT active_record_1
+  SQL (0.4ms)  DELETE FROM "users" WHERE "users"."id" = ?  [["id", 3]]
+   (0.2ms)  RELEASE SAVEPOINT active_record_1
+ => #<User id: 3, name: "foo", email: "bar@example.com", created_at: "2011-12-28 18:10:53", updated_at: "2011-12-28 18:10:53"> 
+1.9.2-p290 :011 > foo
+ => #<User id: 3, name: "foo", email: "bar@example.com", created_at: "2011-12-28 18:10:53", updated_at: "2011-12-28 18:10:53"> 
+i tak dalej :P
+
+9) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rake db:test:prepare
+10) #spec/models/user_spec.rb
+
+require 'spec_helper'
+
+describe User do
+  pending "add some examples to (or delete) #{__FILE__}"
+end
+
+11) #spec/models/user_spec.rb (narazie 8 testow)
+
+require 'spec_helper'
+
+describe User do
+
+  before(:each) do
+    @attr = { :name => "Example User", :email => "user@example.com" }
+  end
+
+  it "should create a new instance given valid attributes" do
+    User.create!(@attr)
+  end
+
+  it "should require a name" do
+    no_name_user = User.new(@attr.merge(:name => ""))
+    no_name_user.should_not be_valid
+  end
+  
+  it "should require an email address" do
+    no_email_user = User.new(@attr.merge(:email => ""))
+    no_email_user.should_not be_valid
+  end
+  
+  it "should reject names that are too long" do
+    long_name = "a" * 51
+    long_name_user = User.new(@attr.merge(:name => long_name))
+    long_name_user.should_not be_valid
+  end
+  
+  it "should accept valid email addresses" do
+    addresses = %w[user@foo.com THE_USER@foo.bar.org first.last@foo.jp]
+    addresses.each do |address|
+      valid_email_user = User.new(@attr.merge(:email => address))
+      valid_email_user.should be_valid
+    end
+  end
+
+  it "should reject invalid email addresses" do
+    addresses = %w[user@foo,com user_at_foo.org example.user@foo.]
+    addresses.each do |address|
+      invalid_email_user = User.new(@attr.merge(:email => address))
+      invalid_email_user.should_not be_valid
+    end
+  end
+  
+  it "should reject duplicate email addresses" do
+    # Put a user with given email address into the database.
+    User.create!(@attr)
+    user_with_duplicate_email = User.new(@attr)
+    user_with_duplicate_email.should_not be_valid
+  end
+  
+  it "should reject email addresses identical up to case" do
+    upcased_email = @attr[:email].upcase
+    User.create!(@attr.merge(:email => upcased_email))
+    user_with_duplicate_email = User.new(@attr)
+    user_with_duplicate_email.should_not be_valid
+  end
+end
+
+12) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rspec spec/models/user_spec.rb -> FAIL
+13) #app/models/user.rb
+
+class User < ActiveRecord::Base
+  attr_accessible :name, :email
+  
+  email_regex = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
+  
+	validates :name, :presence => true, :length   => { :maximum => 50 }
+	validates :email, :presence => true, :format   => { :with => email_regex }, :uniqueness => { :case_sensitive => false }
+end
+
+14) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rspec spec/models/user_spec.rb -> OK!
+15) kuba@traktor:~/rails_projekty/sample_app$ rails g migration add_email_uniqueness_index
+16) #db/migrate/<timestamp>_add_email_uniqueness_index.rb
+
+class AddEmailUniquenessIndex < ActiveRecord::Migration
+
+  def up
+  	add_index :users, :email, :unique => true
+  end
+
+  def down
+  	remove_index :users, :email
+  end
+end
+
+17) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rake db:migrate
+18) #app/views/layouts/application.html.erb (dodac po stopce)
+
+<%= render 'layouts/footer' %>
+<%= debug(params) if Rails.env.development? %>
+
+19) kuba@traktor:~/rails_projekty/sample_app$ rails console
+Loading development environment (Rails 3.1.3)
+"1.9.2-p290 :001 > User.create!(:name => "kuba", :email => "slunzok@gmail.com")
+
+20) #app/views/users/show.html.erb
+
+<%= @user.name %>, <%= @user.email %>
+
+21) #app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+
+	def show
+		@user = User.find(params[:id])
+	end
+
+	def new
+		@title = "Sign up"
+	end
+end
+
+22) #config/routes.rb
+
+	resources :users
+  
+  match '/signup',  :to => 'users#new'
+  match '/contact', :to => 'pages#contact'
+  match '/about',   :to => 'pages#about'
+  match '/help',    :to => 'pages#help'
+  
+  root :to => 'pages#home'

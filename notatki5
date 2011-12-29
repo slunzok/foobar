@@ -1,0 +1,415 @@
+Rails 3.1.3
+
+Chapter 8
+
+1) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rake db:reset
+2) #spec/controllers/users_controller_spec.rb (current)
+
+require 'spec_helper'
+
+describe UsersController do
+  render_views
+  .
+  .
+  .
+  describe "GET 'new'" do
+    
+    it "should be successful" do
+      get :new
+      response.should be_success
+    end
+    
+    it "should have the right title" do
+      get :new
+      response.should have_selector("title", :content => "Sign up")
+    end
+  end
+  .
+  .
+  .
+end
+
+3) #app/views/users/new.html.erb
+
+<h1>Sign up</h1>
+
+<%= form_for(@user) do |f| %>
+  <div class="field">
+    <%= f.label :name %><br />
+    <%= f.text_field :name %>
+  </div>
+  <div class="field">
+    <%= f.label :email %><br />
+    <%= f.text_field :email %>
+  </div>
+  <div class="field">
+    <%= f.label :password %><br />
+    <%= f.password_field :password %>
+  </div>
+  <div class="field">
+    <%= f.label :password_confirmation, "Confirmation" %><br />
+    <%= f.password_field :password_confirmation %>
+  </div>
+  <div class="actions">
+    <%= f.submit "Sign up" %>
+  </div>
+<% end %>
+
+4) #app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  .
+  .
+  .
+  def new
+    @user = User.new
+    @title = "Sign up"
+  end
+end
+
+5) #public/stylesheets/custom.css
+
+div.field, div.actions {
+  margin-bottom: 10px;
+}
+
+6) #spec/controllers/users_controller_spec.rb (teraz juz 10 przykladow)
+
+require 'spec_helper'
+
+describe UsersController do
+  render_views
+  .
+  .
+  .
+  
+  describe "POST 'create'" do
+
+    describe "failure" do
+      
+      before(:each) do
+        @attr = { :name => "", :email => "", :password => "",
+                  :password_confirmation => "" }
+      end
+
+      it "should not create a user" do
+        lambda do
+          post :create, :user => @attr
+        end.should_not change(User, :count)
+      end
+      
+      it "should have the right title" do
+        post :create, :user => @attr
+        response.should have_selector("title", :content => "Sign up")
+      end
+          
+      it "should render the 'new' page" do
+        post :create, :user => @attr
+        response.should render_template('new')
+      end
+    end
+  end
+end
+
+7) #app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  .
+  .
+  .
+  def create
+    @user = User.new(params[:user])
+    if @user.save
+      # Handle a successful save.
+    else
+      @title = "Sign up"
+      render 'new'
+    end
+  end
+end
+
+8) #app/views/users/new.html.erb
+
+<h1>Sign up</h1>
+
+<%= form_for(@user) do |f| %>
+  <%= render 'shared/error_messages' %>
+  .
+  .
+  .
+<% end %>
+
+9) #app/views/shared/_error_messages.html.erb
+
+<% if @user.errors.any? %>
+  <div id="error_explanation">
+    <h2><%= pluralize(@user.errors.count, "error") %> 
+        prohibited this user from being saved:</h2>
+    <p>There were problems with the following fields:</p>
+    <ul>
+    <% @user.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+    </ul>
+  </div>
+<% end %>
+
+10) #public/stylesheets/custom.css
+
+.field_with_errors {
+  margin-top: 10px;
+  padding: 2px;
+  background-color: red;
+  display: table;
+}
+
+.field_with_errors label {
+  color: #fff;
+}
+
+#error_explanation {
+  width: 400px;
+  border: 2px solid red;
+  padding: 7px;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  background-color: #f0f0f0;
+}
+
+#error_explanation h2 {
+  text-align: left;
+  font-weight: bold;
+  padding: 5px 5px 5px 15px;
+  font-size: 12px;
+  margin: -7px;
+  background-color: #c00;
+  color: #fff;
+}
+
+#error_explanation p {
+  color: #333;
+  margin-bottom: 0;
+  padding: 5px;
+}
+
+#error_explanation ul li {
+  font-size: 12px;
+  list-style: square;
+}
+
+11) #config/application.rb (default - OK!)
+
+require File.expand_path('../boot', __FILE__)
+
+require 'rails/all'
+
+# If you have a Gemfile, require the gems listed there, including any gems
+# you've limited to :test, :development, or :production.
+Bundler.require(:default, Rails.env) if defined?(Bundler)
+
+module SampleApp
+  class Application < Rails::Application
+    .
+    .
+    .
+    # Configure sensitive parameters which will be filtered from the log file.
+    config.filter_parameters += [:password]
+  end
+end
+
+12) #spec/controllers/users_controller_spec.rb (teraz 12 examples)
+
+require 'spec_helper'
+
+describe UsersController do
+  render_views
+  .
+  .
+  .
+  describe "POST 'create'" do
+    .
+    .
+    .
+    describe "success" do
+    
+      before(:each) do
+        @attr = { :name => "New User", :email => "user@example.com",
+                  :password => "foobar", :password_confirmation => "foobar" }
+      end
+
+      it "should create a user" do
+        lambda do
+          post :create, :user => @attr
+        end.should change(User, :count).by(1)
+      end
+            
+      it "should redirect to the user show page" do
+        post :create, :user => @attr
+        response.should redirect_to(user_path(assigns(:user)))
+      end    
+    end
+  end
+end
+
+13) #app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  .
+  .
+  .
+  def create
+    @user = User.new(params[:user])
+    if @user.save
+      redirect_to @user
+    else
+      @title = "Sign up"
+      render 'new'
+    end
+  end
+end
+
+14) #app/views/layouts/application.html.erb
+
+<!DOCTYPE html>
+<html>
+      .
+      .
+      .
+      <%= render 'layouts/header' %>
+      <section class="round">
+        <% flash.each do |key, value| %>
+          <div class="flash <%= key %>"><%= value %></div>
+        <% end %>
+        <%= yield %>
+      </section>
+      .
+      .
+      .
+</html>
+
+15) #spec/controllers/users_controller_spec.rb (13 :P)
+
+require 'spec_helper'
+
+describe UsersController do
+  render_views
+  .
+  .
+  .
+  describe "POST 'create'" do
+    .
+    .
+    
+    describe "success" do
+      .
+      .
+      .
+      it "should have a welcome message" do
+        post :create, :user => @attr
+        flash[:success].should =~ /welcome to the sample app/i
+      end
+    end
+  end
+end
+
+16) #app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  .
+  .
+  .
+  def create
+    @user = User.new(params[:user])
+    if @user.save
+      flash[:success] = "Welcome to the Sample App!"
+      redirect_to @user
+    else
+      @title = "Sign up"
+      render 'new'
+    end
+  end
+end
+
+17) kuba@traktor:~/rails_projekty/sample_app$ rails generate integration_test users
+18) #spec/requests/users_spec.rb
+
+require 'spec_helper'
+
+describe "Users" do
+  
+  describe "signup" do
+    
+    describe "failure" do
+    
+      it "should not make a new user" do
+        visit signup_path
+        fill_in "Name",         :with => ""
+        fill_in "Email",        :with => ""
+        fill_in "Password",     :with => ""
+        fill_in "Confirmation", :with => ""
+        click_button
+        response.should render_template('users/new')
+        response.should have_selector("div#error_explanation")
+      end
+    end
+  end
+end
+
+19) #spec/requests/users_spec.rb
+
+require 'spec_helper'
+
+describe "Users" do
+  
+  describe "signup" do
+    
+    describe "failure" do
+    
+      it "should not make a new user" do
+        lambda do
+          visit signup_path
+          fill_in "Name",         :with => ""
+          fill_in "Email",        :with => ""
+          fill_in "Password",     :with => ""
+          fill_in "Confirmation", :with => ""
+          click_button
+          response.should render_template('users/new')
+          response.should have_selector("div#error_explanation")
+        end.should_not change(User, :count)
+      end
+    end
+  end
+end
+
+20) #spec/requests/users_spec.rb
+
+require 'spec_helper'
+
+describe "Users" do
+  
+  describe "signup" do
+    .
+    .
+    .
+    describe "success" do
+    
+      it "should make a new user" do
+        lambda do
+          visit signup_path
+          fill_in "Name",         :with => "Example User"
+          fill_in "Email",        :with => "user@example.com"
+          fill_in "Password",     :with => "foobar"
+          fill_in "Confirmation", :with => "foobar"
+          click_button
+          response.should have_selector("div.flash.success",
+                                        :content => "Welcome")
+          response.should render_template('users/show')
+        end.should change(User, :count).by(1)
+      end
+    end
+  end
+end
+
+
+
+

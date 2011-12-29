@@ -1,0 +1,356 @@
+Rails 3.1.3
+
+Chapter 5
+
+1) #app/views/layouts/application.html.erb
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <%= csrf_meta_tag %>
+    <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->    
+    <%= stylesheet_link_tag 'blueprint/screen', :media => 'screen' %>
+    <%= stylesheet_link_tag 'blueprint/print',  :media => 'print' %>
+    <!--[if lt IE 8]><%= stylesheet_link_tag 'blueprint/ie' %><![endif]-->
+    <%= stylesheet_link_tag 'custom', :media => 'screen' %>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <%= image_tag("logo.png", :alt => "Sample App", :class => "round") %>
+        <nav class="round">
+          <ul>
+            <li><%= link_to "Home", '#' %></li>
+            <li><%= link_to "Help", '#' %></li>
+            <li><%= link_to "Sign in", '#' %></li>
+          </ul>
+        </nav>
+      </header>
+      <section class="round">
+        <%= yield %>
+      </section>
+    </div>
+  </body>
+</html>
+
+2) #app/views/pages/home.html.erb
+
+<h1>Sample App</h1>
+
+<p>
+  This is the home page for the
+  <a href="http://railstutorial.org/">Ruby on Rails Tutorial</a>
+  sample application.
+</p>
+
+<%= link_to "Sign up now!", '#', :class => "signup_button round" %>
+
+3) kuba@traktor:~/rails_projekty/sample_app$ wget http://railstutorial.org/images/sample_app/logo.png
+4) #public/stylesheets/custom.css
+
+.container {
+  width: 710px;
+}
+
+body {
+  background: #cff;
+}
+
+header {
+  padding-top: 20px;
+}
+
+header img {
+  padding: 1em;
+  background: #fff;
+}
+
+section {
+  margin-top: 1em;
+  font-size: 120%;
+  padding: 20px;
+  background: #fff;
+}
+
+section h1 {
+  font-size: 200%;
+}
+
+/* Links */
+
+a {
+  color: #09c;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #069;
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #069;
+}
+/* Navigation */
+
+nav {
+  float: right;
+}
+
+nav {
+  background-color: white;
+  padding: 0 0.7em;
+  white-space: nowrap;
+}
+
+nav ul {
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  list-style-type: none;
+  display: inline-block;
+  padding: 0.2em 0;
+}
+
+nav ul li a {
+  padding: 0 5px;
+  font-weight: bold;
+}
+
+nav ul li a:visited {
+  color: #09c;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Sign up button */
+
+a.signup_button {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  text-align: center;
+  width: 190px;
+  color: #fff;
+  background: #006400;
+  font-size: 150%;
+  font-weight: bold;
+  padding: 20px;
+}
+
+/* Round corners */
+
+.round {
+  -moz-border-radius:    10px;
+  -webkit-border-radius: 10px;
+  border-radius:         10px;
+}
+
+/* Footer */
+
+footer {
+  text-align: center;
+  margin-top: 10px;
+  width: 710px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+footer nav {
+  float: none;
+}
+
+5) #app/views/layouts/application.html.erb
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <%= csrf_meta_tag %>
+    <%= render 'layouts/stylesheets' %>
+  </head>
+  <body>
+    <div class="container">
+      <%= render 'layouts/header' %>
+      <section class="round">
+        <%= yield %>
+      </section>
+      <%= render 'layouts/footer' %>
+    </div>
+  </body>
+</html>
+
+6) #app/views/layouts/_stylesheets.html.erb
+
+<!--[if lt IE 9]>
+<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<%= stylesheet_link_tag 'blueprint/screen', :media => 'screen' %>
+<%= stylesheet_link_tag 'blueprint/print',  :media => 'print' %>
+<!--[if lt IE 8]><%= stylesheet_link_tag 'blueprint/ie' %><![endif]-->
+<%= stylesheet_link_tag 'custom', :media => 'screen' %>
+
+7) #app/views/layouts/_header.html.erb
+
+<header>
+  <%= image_tag("logo.png", :alt => "Sample App", :class => "round") %>
+  <nav class="round">
+    <ul>
+      <li><%= link_to "Home", '#' %></li>
+      <li><%= link_to "Help", '#' %></li>
+      <li><%= link_to "Sign in", '#' %></li>
+    </ul>
+  </nav>
+</header>
+
+8) #app/views/layouts/_footer.html.erb
+
+<footer>
+  <nav class="round">
+    <ul>
+      <li><%= link_to "About", '#' %></li>
+      <li><%= link_to "Contact", '#' %></li>
+      <li><a href="http://news.railstutorial.org/">News</a></li>
+      <li><a href="http://www.railstutorial.org/">Rails Tutorial</a></li>
+    </ul>
+  </nav>
+</footer>
+
+9) kuba@traktor:~/rails_projekty/sample_app$ rails g integration_test layout_links
+10) #spec/requests/layout_links_spec.rb
+
+require 'spec_helper'
+
+describe "LayoutLinks" do
+
+  it "should have a Home page at '/'" do
+    get '/'
+    response.should have_selector('title', :content => "Home")
+  end
+
+  it "should have a Contact page at '/contact'" do
+    get '/contact'
+    response.should have_selector('title', :content => "Contact")
+  end
+
+  it "should have an About page at '/about'" do
+    get '/about'
+    response.should have_selector('title', :content => "About")
+  end
+  
+  it "should have a Help page at '/help'" do
+    get '/help'
+    response.should have_selector('title', :content => "Help")
+  end
+end
+
+11) #app/views/pages/help.html.erb
+
+<h1>Help</h1>
+<p>
+  Get help on Ruby on Rails Tutorial at the
+  <a href="http://railstutorial.org/help">Rails Tutorial help page</a>.
+  To get help on this sample app, see the
+  <a href="http://railstutorial.org/book">Rails Tutorial book</a>.
+</p>
+
+12) #config/routes.rb
+
+  match '/contact', :to => 'pages#contact'
+  match '/about',   :to => 'pages#about'
+  match '/help',    :to => 'pages#help'
+  
+  root :to => 'pages#home'
+  
+13) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rspec spec/requests/layout_links_spec.rb
+14) #app/views/layouts/_header.html.erb
+
+<% logo = image_tag("logo.png", :alt => "Sample App", :class => "round") %>
+<%= link_to logo, root_path %>
+
+<li><%= link_to "Home", root_path %></li>
+<li><%= link_to "Help", help_path %></li>
+
+15) #app/views/layouts/_footer.html.erb
+
+<li><%= link_to "About", about_path %></li>
+<li><%= link_to "Contact", contact_path %></li>
+
+Chapter 5.3
+
+1) kuba@traktor:~/rails_projekty/sample_app$ rails g controller Users new
+2) kuba@traktor:~/rails_projekty/sample_app$ rm -rf spec/views
+3) kuba@traktor:~/rails_projekty/sample_app$ rm -rf spec/helpers
+4) #spec/controllers/users_controller_spec.rb
+
+require 'spec_helper'
+
+describe UsersController do
+
+  describe "GET 'new'" do
+    it "should be successful" do
+      get 'new'
+      response.should be_success
+    end
+  end
+end
+
+5) #spec/controllers/users_controller_spec.rb
+
+require 'spec_helper'
+
+describe UsersController do
+  render_views
+
+  describe "GET 'new'" do
+    it "should be successful" do
+      get 'new'
+      response.should be_success
+    end
+    
+    it "should have the right title" do
+      get 'new'
+      response.should have_selector("title", :content => "Sign up")
+    end
+  end
+end
+
+6) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rspec spec/controllers/users_controller_spec.rb  -> FAIL (bo nie ma tytulu)
+7) #app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+
+  def new
+    @title = "Sign up"
+  end
+end
+
+8) kuba@traktor:~/rails_projekty/sample_app$ bundle exec rspec spec/controllers/users_controller_spec.rb -> OK!
+9) #spec/requests/layout_links_spec.rb (nalezy dodac)
+
+	it "should have a signup page at '/signup'" do
+    get '/signup'
+    response.should have_selector('title', :content => "Sign up")
+  end
+  
+10) #config/routes.rb (nalezy dodac)
+
+	get "users/new"
+  
+  match '/signup',  :to => 'users#new'
+  match '/contact', :to => 'pages#contact'
+  match '/about',   :to => 'pages#about'
+  match '/help',    :to => 'pages#help'
+  
+  root :to => 'pages#home'
+  
+11) #app/views/pages/home.html.erb
+
+<%= link_to "Sign up now!", signup_path, :class => "signup_button round" %>

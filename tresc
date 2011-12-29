@@ -1,0 +1,60 @@
+Chapter 2: -> 8
+Chapter 3: -> 20
+Chapter 4: -> 4
+Chapter 5: -> 15
+Chapter 5.3: -> 11
+Chapter 6: -> 22
+Chapter 7: -> 41
+Chapter 8: -> 20
+Chapter 9: -> 31
+Chapter 10: -> 45
+Chapter 11: ->
+Chapter 12: ->
+
+===================================================================
+
+Chapter 7:
+spec/
+	-> controllers/
+		-> pages_controller_spec.rb (8 examples)
+		-> users_controller_spec.rb (7 examples)
+	-> models/
+		-> user_spec.rb (19 examples)
+	-> requests/
+		-> layout_links_spec.rb (5 examples)
+		
+Chapter 8:
+spec/
+	-> controllers/
+		-> pages_controller_spec.rb (8 examples)
+		-> users_controller_spec.rb (13 examples)
+	-> models/
+		-> user_spec.rb (19 examples)
+	-> requests/
+		-> layout_links_spec.rb (5 examples)
+		-> users_spec.rb (2 examples)
+
+Chapter 9:
+spec/
+	-> controllers/
+		-> pages_controller_spec.rb (8 examples)
+		-> sessions_controller_spec.rb (8 examples)
+		-> users_controller_spec.rb (14 examples)
+	-> models/
+		-> user_spec.rb (19 examples)
+	-> requests/
+		-> layout_links_spec.rb (8 examples)
+		-> users_spec.rb (4 examples)
+		
+Chapter 10:
+spec /
+	-> controllers/
+		-> pages_controller_spec.rb (8 examples)
+		-> sessions_controller_spec.rb (8 examples)
+		-> users_controller_spec.rb (35 examples)
+	-> models/
+		-> user_spec.rb (22 examples)
+	-> requests/
+		-> friendly_forwarding (1 examle)
+		-> layout_links_spec.rb (8 examples)
+		-> users_spec.rb (4 examples)
