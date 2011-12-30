@@ -1,0 +1,13 @@
+!!! Strict
+%html
+	%head
+		%title Auth
+	%body
+		.flash=[:error, :warning, :notice].map { |type| flash_tag(type, :class => "message #{type}") }.join
+		-if current_user
+			Logged in as =current_user.email
+			=link_to "Log out", url(:sessions, :destroy)
+		-else
+			=link_to "Sign up", url(:users, :new) 
+			=link_to "Log in", url(:sessions, :new)
+		=yield

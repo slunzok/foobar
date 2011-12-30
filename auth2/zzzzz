@@ -1,0 +1,242 @@
+1) kuba@traktor:~/Desktop$ padrino g project auth2 -t rspec -e haml -s jquery -d activerecord
+2) kuba@traktor:~/Desktop$ cd auth2
+3) #Gemfile
+
+source :rubygems
+
+# Server requirements (defaults to WEBrick)
+# gem 'thin'
+# gem 'mongrel'
+
+# Project requirements
+gem 'rake'
+gem 'sinatra-flash', :require => 'sinatra/flash'
+
+# Component requirements
+gem 'bcrypt-ruby', :require => "bcrypt"
+gem 'haml'
+gem 'activerecord', :require => "active_record"
+gem 'sqlite3'
+
+# Test requirements
+gem 'rspec', :group => "test"
+gem 'rack-test', :require => "rack/test", :group => "test"
+
+# Padrino Stable Gem
+gem 'padrino', '0.10.5'
+
+# Or Padrino Edge
+# gem 'padrino', :git => 'git://github.com/padrino/padrino-framework.git'
+
+# Or Individual Gems
+# %w(core gen helpers cache mailer admin).each do |g|
+#   gem 'padrino-' + g, '0.10.5'
+# end
+
+4) kuba@traktor:~/Desktop/auth2$ padrino g controller pages get:index get:about
+5) kuba@traktor:~/Desktop/auth2$ padrino g controller users get:new post:create
+6) kuba@traktor:~/Desktop/auth2$ padrino g model user email:string password_hash:string password_salt:string
+7) kuba@traktor:~/Desktop/auth2$ padrino rake ar:create
+8) kuba@traktor:~/Desktop/auth2$ padrino rake ar:migrate
+9) #app/controllers/pages.rb
+
+Auth2.controllers :pages do
+
+  get :index, :map => '/' do
+  	render 'pages/index'
+  end
+
+  get :about, :map => '/about' do
+  	render 'pages/about'
+  end
+
+end
+
+10) #app/views/pages/index.haml
+
+%h1 Index
+
+11) #app/views/pages/about.haml
+
+%h1 About
+
+12) #app/controllers/users.rb
+
+Auth2.controllers :users do
+
+  get :new, :map => '/signup' do
+  	@user = User.new
+  	render 'users/new'
+  end
+
+  post :create, :map => '/signup' do
+  	@user = User.new(params[:user])
+    if @user.save
+    	flash[:notice] = 'Signed up!'
+      redirect url(:pages, :index)
+    else
+      render 'users/new'
+    end
+  end
+
+end
+
+13) #app/views/users/new.haml
+
+-form_for :user, url(:users, :create) do |f|
+
+	=f.label :email
+	=f.text_field :email
+	=f.error_message_on :email
+	
+	%br 
+	%br
+	
+	=f.label :password
+	=f.password_field :password
+	=f.error_message_on :password
+	
+	%br
+	%br 
+	
+	=f.label :password_confirmation
+	=f.password_field :password_confirmation
+	=f.error_message_on :password_confirmation
+	
+	%br
+	%br
+	
+	=f.submit "Create"
+	
+14) #app/views/layout/application.haml
+
+!!! Strict
+%html
+	%head
+		%title Auth
+	%body
+		.flash=[:error, :warning, :notice].map { |type| flash_tag(type, :class => "message #{type}") }.join
+		=yield
+		
+15) #models/user.rb
+
+class User < ActiveRecord::Base
+
+	attr_accessor :password
+  validates_confirmation_of :password
+  validates_presence_of :password
+  validates_presence_of :email
+  validates_uniqueness_of :email
+  
+  before_save :encrypt_password
+  
+  def encrypt_password
+    if password.present?
+      self.password_salt = BCrypt::Engine.generate_salt
+      self.password_hash = BCrypt::Engine.hash_secret(password, password_salt)
+    end
+  end
+  
+end
+
+16) kuba@traktor:~/Desktop/auth2$ padrino g controller sessions get:new post:create get:destroy
+17) #app/controllers/sessions.rb
+
+Auth2.controllers :sessions do
+
+  get :new, :map => '/login' do
+  	render 'sessions/new'
+  end
+
+  post :create, :map => '/login' do
+  	user = User.authenticate(params[:email], params[:password])
+    if user
+      session[:user_id] = user.id
+      flash[:notice] = 'Logged in!'
+      redirect url(:pages, :index)
+    else
+      flash[:error] = 'Invalid email or password'
+      render 'sessions/new'
+    end
+  end
+
+  get :destroy, :map => '/logout' do
+  	session[:user_id] = nil
+  	flash[:notice] = 'Logged out!'
+  	redirect url(:pages, :index)
+  end
+
+end
+
+18) #app/views/sessions/new.haml
+
+-form_tag url(:sessions, :create) do
+
+	=label_tag :email
+	=text_field_tag :email
+	
+	%br
+	%br
+ 
+	= label_tag :password
+	= password_field_tag :password
+	
+	%br
+	%br
+	
+	= submit_tag "Login"
+	
+19) #models/user.rb
+
+class User < ActiveRecord::Base
+
+	attr_accessor :password
+  validates_confirmation_of :password
+  validates_presence_of :password
+  validates_presence_of :email
+  validates_uniqueness_of :email
+  
+  before_save :encrypt_password
+  
+  def self.authenticate(email, password)
+    user = find_by_email(email)
+    if user && user.password_hash == BCrypt::Engine.hash_secret(password, user.password_salt)
+      user
+    else
+      nil
+    end
+  end
+  
+  def encrypt_password
+    if password.present?
+      self.password_salt = BCrypt::Engine.generate_salt
+      self.password_hash = BCrypt::Engine.hash_secret(password, password_salt)
+    end
+  end
+  
+end
+
+20) #app/helpers/sessions_helper.rb (cos nie dziala)
+
+Auth2.helpers do
+
+  def current_user
+    @current_user ||= User.find(session[:user_id]) if session[:user_id]
+  end
+end
+
+21) #app/views/layout/application.haml
+
+!!! Strict
+%html
+	%head
+		%title Auth
+	%body
+		.flash=[:error, :warning, :notice].map { |type| flash_tag(type, :class => "message #{type}") }.join
+		-if current_user
+			Logged in as =current_user.email
+			=link_to "Log out", url(:sessions, :destroy)
+		-else
+			=link_to "Sign up", url(:users, :new) 
+			=link_to "Log in", url(:sessions, :new)
+		=yield
